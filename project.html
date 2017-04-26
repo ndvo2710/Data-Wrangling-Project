@@ -11,7 +11,7 @@
 <style type="text/css">
 body {
   font-family: Helvetica, arial, sans-serif;
-  font-size: 14px;
+  font-size: 10px;
   line-height: 1.6;
   padding-top: 10px;
   padding-bottom: 10px;
@@ -313,19 +313,17 @@ sup {
 
 <body>
 
-<h1 id="toc_0">OpenStreetMap Data Case Study</h1>
+<h2 id="toc_0">OpenStreetMap Data Case Study</h2>
 
 <p><strong>Author: <a href="http://kevinvo.xyz">Kevin Vo</a></strong></p>
 
-<h2 id="toc_1">Map Area</h2>
+<h3 id="toc_1">Map Area</h3>
 
 <p><a href="https://en.wikipedia.org/wiki/San_Jose,_California">San Jose, CA, USA</a></p>
 
-<p><a href="https://mapzen.com/data/metro-extracts/">Dataset</a> contains information for San Jose Area.</p>
+<p><a href="https://mapzen.com/data/metro-extracts/">Dataset</a> contains information for San Jose Area. I&rsquo;m curious to see the map contribution of San Jose, which is my hometown.</p>
 
-<p>I&rsquo;m curious to see the map contribution of San Jose, which is my hometown.</p>
-
-<h2 id="toc_2">Main Procedure to identify Problems in the Map</h2>
+<h3 id="toc_2">Main Procedure to identify Problems in the Map</h3>
 
 <ul>
 <li>Since the the original file <code>sanjose.osm</code> is 600 MB, which is very large to view, I use <code>sample_region.py</code> to subset data.(This is the hint that Udacity provide). The new subset is stored in <code>sample.osm</code>, which is about 4MB (Set k = 100, it means pick every 100th top level element).</li>
@@ -335,7 +333,7 @@ sup {
 <li>Choose a smaller k value to get a bigger <code>sample.osm</code> file. Then modify <code>audit.py</code> to be able to screen and audit more cases.</li>
 </ul>
 
-<h2 id="toc_3">Problems Encountered In the Map</h2>
+<h3 id="toc_3">Problems Encountered In the Map</h3>
 
 <p><strong>Overabbreviated and Inconsistent street names:</strong> some street types and directions are abbreviated such as <code>St, Rd, Ave, Blvd, Cir, Ln, Ct</code> or <code>1st, 2nd,.... 10th</code></p>
 
@@ -363,22 +361,7 @@ word_number_mapping = {
                      &quot;ninth&quot;: &quot;9th&quot;,
                      &quot;Tenth&quot;: &quot;10th&quot;,
                      &quot;tenth&quot;: &quot;10th&quot;
-                   }
-
-def update_name(name):
-    better_name = name
-    for key in mapping.keys():
-      better_name = re.sub(r&#39;\s&#39; + re.escape(key) + r&#39;$&#39;, &#39; &#39; + mapping[key], better_name)
-
-    for key in word_number_mapping.keys():
-      better_name = re.sub(key, word_number_mapping[key], better_name)
-
-    # Check if avenue, road, street, etc. are capitalized
-    last_word = better_name.rsplit(None, 1)[-1]
-    if last_word.islower():
-        better_name = re.sub(last_word, last_word.title(), better_name)
-    #print better_name
-    return better_name</code></pre></div>
+                   }</code></pre></div>
 
 <p>I have not fixed extreme cases such as <code>(408) 738-CHEF</code> or placing website address in phone number. Fortunately, there are very few extreme cases in this data.</p>
 
@@ -396,41 +379,32 @@ def update_name(name):
 
 <p><code>123-4567</code> to <code>+1 (408)123-4567</code></p>
 
+<p>First of all, I have to remove special characters such as <code>+1</code>, <code>-</code>, <code>()</code>, whitespace, <code>.</code> or <code>+</code> from phone number.</p>
+
+<div><pre class="line-numbers"><code class="language-python">phone_num = re.sub(&quot;\+1&quot;, &quot;&quot;, phone_num)
+phone_num = re.sub(&quot;-&quot;, &quot;&quot;, phone_num)
+phone_num = re.sub(&quot;[()]&quot;, &quot;&quot;, phone_num)
+phone_num = re.sub(&quot;\s&quot;, &quot;&quot;, phone_num)
+phone_num = re.sub(&quot;\\.&quot;, &quot;&quot;, phone_num)
+phone_num = re.sub(&quot;\\+&quot;, &quot;&quot;, phone_num)</code></pre></div>
+
+<p>Now most of phone numbers do not contain special chracters. We can check whether it is 7 digits long, 10 digits long or 11 digits long.</p>
+
 <div><pre class="line-numbers"><code class="language-python">PHONE_7_NUM = re.compile(r&#39;^\d{7}$&#39;)
 PHONE_10_NUM = re.compile(r&#39;^\d{10}$&#39;)
-PHONE_11_NUM = re.compile(r&#39;^\d{11}$&#39;)
-def update_phone_num(phone_num):
-    &quot;&quot;&quot;
-    Clean phone number
-    &quot;&quot;&quot;
-    original_phone_num = phone_num
-    phone_num = re.sub(&quot;\+1&quot;, &quot;&quot;, phone_num)
-    phone_num = re.sub(&quot;-&quot;, &quot;&quot;, phone_num)
-    phone_num = re.sub(&quot;[()]&quot;, &quot;&quot;, phone_num)
-    phone_num = re.sub(&quot;\s&quot;, &quot;&quot;, phone_num)
-    phone_num = re.sub(&quot;\\.&quot;, &quot;&quot;, phone_num)
-    phone_num = re.sub(&quot;\\+&quot;, &quot;&quot;, phone_num)
+PHONE_11_NUM = re.compile(r&#39;^\d{11}$&#39;)</code></pre></div>
 
-    # Check for valid phone number format
-    m_ten = PHONE_10_NUM.match(phone_num)
-    if m_ten is not None:
-      phone_num = &#39;+1(&#39; + phone_num[:3] + &#39;)&#39; + phone_num[3:6] + &#39;-&#39; + phone_num[6:10]
-    m_seven = PHONE_7_NUM.match(phone_num)
-    if m_seven is not None:
-      phone_num = &#39;+1(408)&#39; + phone_num[1:3] + &#39;-&#39; + phone_num[3:7]
-    m_eleven = PHONE_11_NUM.match(phone_num)
-    if m_eleven is not None:
-      phone_num = &#39;+&#39; + phone_num[:1] + &#39;(&#39; + phone_num[1:4] + &#39;)&#39; + phone_num[4:7] + &#39;-&#39; + phone_num[7:11]
-
-    if (m_seven is not None) or (m_ten is not None) or (m_eleven is not None):
-      return phone_num
-    else:
-        #print &quot;wrong phone number: &quot;, original_phone_num
-        return None</code></pre></div>
+<p>Based on each case, we can modify phone number to standard format <code>+1 (408)###-####</code></p>
 
 <p><strong>Incorrect postal code format:</strong></p>
 
-<p>Convert postal code to correct format: <code>CA #####</code> or <code>CA #####-####</code>. If postal code are not 5-digits number or 9-digits number, it will be classified as wrong postal code then will be excluded from our data.</p>
+<p>Convert postal code to correct format: <code>CA #####</code> or <code>CA #####-####</code>. </p>
+
+<p>I have used regular expression to classify all these cases:</p>
+
+<div><pre class="line-numbers"><code class="language-python">POSTCODE = re.compile(r&#39;^\d{5}$|\d{5}-\d{4}$&#39;)</code></pre></div>
+
+<p>If postal code are not 5-digits number or 9-digits number, it will be classified as wrong postal code then will be excluded from our data.</p>
 
 <p>For example: these are excluded from our data</p>
 
@@ -438,23 +412,7 @@ def update_phone_num(phone_num):
 WRONG POSTAL CODE: 95014-321
 WRONG POSTAL CODE: 9404</code></pre></div>
 
-<div><pre class="line-numbers"><code class="language-python">POSTCODE = re.compile(r&#39;^\d{5}$|\d{5}-\d{4}$|\d{5}-\d{3}$&#39;)
-def update_postal_code(postcode):
-    &quot;&quot;&quot;
-    Clean postal code
-    &quot;&quot;&quot;
-    postcode = re.sub(&quot;CA&quot;, &quot;&quot;, postcode)
-    postcode = re.sub(&quot;\s&quot;, &quot;&quot;, postcode)
-
-    m = POSTCODE.match(postcode)
-    if m is not None:
-      postcode = &#39;CA &#39; + postcode
-      return postcode
-    else:
-      #print &quot;WRONG POSTAL CODE:&quot;, postcode
-      return None</code></pre></div>
-
-<h2 id="toc_4">Create SQL Tables &amp; Import Data Into Tables</h2>
+<h3 id="toc_4">Create SQL Tables &amp; Import Data Into Tables</h3>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; CREATE TABLE Nodes(id INTEGER PRIMARY KEY, lat REAL, lon REAL, user TEXT, uid INTEGER, version INTEGER, changeset INTEGER, timestamp DATETIME);
 sqlite&gt; CREATE TABLE nodesTags(id INTEGER, key TEXT, value TEXT, type TEXT, FOREIGN KEY (id) REFERENCES Nodes (id));
@@ -470,7 +428,7 @@ sqlite&gt; .import ways.csv Ways
 sqlite&gt; .import ways_tags.csv waysTags
 sqlite&gt; .import ways_nodes.csv waysNodes</code></pre></div>
 
-<h2 id="toc_5">Data Overview</h2>
+<h3 id="toc_5">Data Overview</h3>
 
 <p>This section contains basic statistics about San Jose OpenStreetMap dataset and the SQL queries used to gather them.</p>
 
@@ -506,7 +464,7 @@ ways_tags.csv       14.3 MB</code></pre></div>
 
 <p>285.0</p>
 
-<h3 id="toc_10">Users:</h3>
+<h4 id="toc_10">Users:</h4>
 
 <h5 id="toc_11">Number of unique users</h5>
 
@@ -560,7 +518,7 @@ RichRico,57426</code></pre></div>
 2016,266813
 2017,119350</code></pre></div>
 
-<h3 id="toc_15">Places To Eat:</h3>
+<h4 id="toc_15">Places To Eat:</h4>
 
 <h4 id="toc_16">Most popular cuisine</h4>
 
@@ -584,7 +542,7 @@ american,14
 thai,14
 sushi,12</code></pre></div>
 
-<h3 id="toc_17">Coffee:</h3>
+<h4 id="toc_17">Coffee:</h4>
 
 <h5 id="toc_18">Number of Cafe stores</h5>
 
@@ -600,7 +558,7 @@ sushi,12</code></pre></div>
 
 <p><img src="https://s-media-cache-ak0.pinimg.com/originals/5b/4d/a8/5b4da89d0dd9972da7921faf53540897.jpg" alt="Starbuck Store"></p>
 
-<h3 id="toc_20">Banking:</h3>
+<h4 id="toc_20">Banking:</h4>
 
 <h5 id="toc_21">5 Most popular bank</h5>
 
@@ -623,7 +581,7 @@ Citibank,4
 
 <p><img src="https://chase.archinetonline.com/images/chase_login_600_300.jpg" alt="Chase Bank"></p>
 
-<h3 id="toc_22">Religion:</h3>
+<h4 id="toc_22">Religion:</h4>
 
 <h5 id="toc_23">Number of Place of Worship for each religion</h5>
 
@@ -643,15 +601,15 @@ rosicrucian,1
 shinto,1
 zoroastrian,1</code></pre></div>
 
-<h2 id="toc_24">Data Improvement Ideas:</h2>
+<h3 id="toc_24">Data Improvement Ideas:</h3>
 
 <ul>
-<li>Working with this dataset, I find that there are still some wrong postal codes such as 9404 when the postal code 5 digits or 7 digits number.</li>
+<li>Working with this dataset, I find that there are still some wrong postal codes such as 9404 when the postal code are 5 digits or 7 digits number.</li>
 <li>Based on the number of contribution by year, we have realized that the number of contribution has been increasing every year. It means that the map data is going to grow larger. Also it means that the number of wrong postal codes will also increase.</li>
-<li>One way we could find the address for this issue is that we need a database of postal code format for each country. So when user add the wrong postal code format that does not match with the postal format of that location, it will not be accepted. </li>
+<li>One way we could find the address for this issue is that I can use Reverse Geocoding from Google Geocoding API. Reverse Geocoding is the process of converting geographic coordinates into a human-readable address. In other words, I can use longitude and latitude to retrieve postal code. </li>
 </ul>
 
-<h2 id="toc_25">Conclusion</h2>
+<h3 id="toc_25">Conclusion</h3>
 
 <p>San Jose is a small town but its dataset is quite large. Therefore it is impossible to clean all the mess inside San Jose CA OpenStreetMap data. However, I believe the dataset is sufficiently cleaned in this project. Most street types abbreviation are replaced by more approriate street type without abbreviation. Phone number and postal code are handled nicely in the format of <code>+1 (408)###-####</code> and <code>CA ##### or CA #####-####</code> respectively. Via SQL query, I learned a few new things about my hometown. Throughout this project I have a great time learning how to clean data with python and SQL. However, my code still take nearly 30 minutes to handle 200MB osm file. Faster processing is the next approach I have to achieve for this project.</p>
 

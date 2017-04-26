@@ -8,7 +8,7 @@ street_type_re = re.compile(r'\b\S+\.?$', re.IGNORECASE)
 PHONE_7_NUM = re.compile(r'^\d{7}$')
 PHONE_10_NUM = re.compile(r'^\d{10}$')
 PHONE_11_NUM = re.compile(r'^\d{11}$')
-POSTCODE = re.compile(r'^\d{5}$|\d{5}-\d{4}$|\d{5}-\d{3}$')
+POSTCODE = re.compile(r'^\d{5}$|\d{5}-\d{4}$')
 
 expected = ["Street", "Avenue", "Boulevard", "Drive", "Court", "Place", "Square", "Lane", "Road",
             "Trail", "Parkway", "Commons", "Circle", "Crescent", "Gate", "Terrace", "Grove", "Way"]
