@@ -412,27 +412,11 @@ PHONE_11_NUM = re.compile(r&#39;^\d{11}$&#39;)</code></pre></div>
 WRONG POSTAL CODE: 95014-321
 WRONG POSTAL CODE: 9404</code></pre></div>
 
-<h3 id="toc_4">Create SQL Tables &amp; Import Data Into Tables</h3>
-
-<div><pre class="line-numbers"><code class="language-sql">sqlite&gt; CREATE TABLE Nodes(id INTEGER PRIMARY KEY, lat REAL, lon REAL, user TEXT, uid INTEGER, version INTEGER, changeset INTEGER, timestamp DATETIME);
-sqlite&gt; CREATE TABLE nodesTags(id INTEGER, key TEXT, value TEXT, type TEXT, FOREIGN KEY (id) REFERENCES Nodes (id));
-sqlite&gt; CREATE TABLE Ways(id INTEGER PRIMARY KEY, user TEXT, uid INTEGER, version INTEGER, changeset INTEGER, timestamp DATETIME);
-sqlite&gt; CREATE TABLE waysNodes(id INTEGER, node_id INTEGER, position INTEGER, FOREIGN KEY(id) REFERENCES Nodes(id));
-sqlite&gt; CREATE TABLE waysTags(id INTEGER, key TEXT, value TEXT, type TEXT, FOREIGN KEY(id) REFERENCES Ways(id));
-sqlite&gt; .table
-Nodes      Ways       nodesTags  waysNodes  waysTags
-sqlite&gt; .mode csv
-sqlite&gt; .import nodes.csv Nodes
-sqlite&gt; .import nodes_tags.csv nodesTags
-sqlite&gt; .import ways.csv Ways
-sqlite&gt; .import ways_tags.csv waysTags
-sqlite&gt; .import ways_nodes.csv waysNodes</code></pre></div>
-
-<h3 id="toc_5">Data Overview</h3>
+<h3 id="toc_4">Data Overview</h3>
 
 <p>This section contains basic statistics about San Jose OpenStreetMap dataset and the SQL queries used to gather them.</p>
 
-<h5 id="toc_6">File sizes</h5>
+<h5 id="toc_5">File sizes</h5>
 
 <div><pre class="line-numbers"><code class="language-none">sample.osm          237 MB
 sanjose.db          117.3 MB
@@ -442,19 +426,19 @@ ways.csv            8.1 MB
 ways_nodes.cv       30.1 MB
 ways_tags.csv       14.3 MB</code></pre></div>
 
-<h5 id="toc_7">Number of nodes</h5>
+<h5 id="toc_6">Number of nodes</h5>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT COUNT(*) FROM Nodes;</code></pre></div>
 
 <p>1048575</p>
 
-<h5 id="toc_8">Number of ways</h5>
+<h5 id="toc_7">Number of ways</h5>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT COUNT(*) FROM Ways;</code></pre></div>
 
 <p>136514</p>
 
-<h5 id="toc_9">Average number of nodes per day</h5>
+<h5 id="toc_8">Average number of nodes per day</h5>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT ROUND(number_of_nodes/(max_day - min_day)) AS average_nodes_per_day
         FROM (SELECT COUNT(*) AS number_of_nodes,
@@ -464,9 +448,9 @@ ways_tags.csv       14.3 MB</code></pre></div>
 
 <p>285.0</p>
 
-<h4 id="toc_10">Users:</h4>
+<h4 id="toc_9">Users:</h4>
 
-<h5 id="toc_11">Number of unique users</h5>
+<h5 id="toc_10">Number of unique users</h5>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT COUNT(DISTINCT(ListOfUserId.uid))
         FROM (SELECT uid 
@@ -476,7 +460,7 @@ ways_tags.csv       14.3 MB</code></pre></div>
 
 <p>1399</p>
 
-<h5 id="toc_12">Top 5 contributing users</h5>
+<h5 id="toc_11">Top 5 contributing users</h5>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT ListOfUser.user, COUNT(*) as num
         FROM (SELECT user FROM Nodes 
@@ -491,7 +475,7 @@ mk408,100515
 karitotp,62823
 RichRico,57426</code></pre></div>
 
-<h5 id="toc_13">First contributor</h5>
+<h5 id="toc_12">First contributor</h5>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT user, timestamp FROM Nodes 
                 UNION ALL SELECT user, timestamp From Ways
@@ -500,7 +484,7 @@ RichRico,57426</code></pre></div>
 
 <p>mikelmaron,2007-03-08T02:02:46Z</p>
 
-<h5 id="toc_14">Number of Contributions by Year</h5>
+<h5 id="toc_13">Number of Contributions by Year</h5>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT strftime(&#39;%Y&#39;, timestamp) AS year, count(*)
         FROM Nodes
@@ -518,9 +502,9 @@ RichRico,57426</code></pre></div>
 2016,266813
 2017,119350</code></pre></div>
 
-<h4 id="toc_15">Places To Eat:</h4>
+<h4 id="toc_14">Places To Eat:</h4>
 
-<h4 id="toc_16">Most popular cuisine</h4>
+<h4 id="toc_15">Most popular cuisine</h4>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT nodesTags.value, COUNT(*) as num
         FROM nodesTags
@@ -542,15 +526,15 @@ american,14
 thai,14
 sushi,12</code></pre></div>
 
-<h4 id="toc_17">Coffee:</h4>
+<h4 id="toc_16">Coffee:</h4>
 
-<h5 id="toc_18">Number of Cafe stores</h5>
+<h5 id="toc_17">Number of Cafe stores</h5>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT COUNT(*) FROM nodesTags WHERE value = &#39;cafe&#39;;</code></pre></div>
 
 <p>143</p>
 
-<h5 id="toc_19">Number of Starbucks</h5>
+<h5 id="toc_18">Number of Starbucks</h5>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT COUNT(*) FROM nodesTags WHERE value LIKE &#39;%Starbucks%&#39;;</code></pre></div>
 
@@ -558,9 +542,9 @@ sushi,12</code></pre></div>
 
 <p><img src="https://s-media-cache-ak0.pinimg.com/originals/5b/4d/a8/5b4da89d0dd9972da7921faf53540897.jpg" alt="Starbuck Store"></p>
 
-<h4 id="toc_20">Banking:</h4>
+<h4 id="toc_19">Banking:</h4>
 
-<h5 id="toc_21">5 Most popular bank</h5>
+<h5 id="toc_20">5 Most popular bank</h5>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT nodesTags.value, COUNT(*) as num
         FROM nodesTags
@@ -581,9 +565,9 @@ Citibank,4
 
 <p><img src="https://chase.archinetonline.com/images/chase_login_600_300.jpg" alt="Chase Bank"></p>
 
-<h4 id="toc_22">Religion:</h4>
+<h4 id="toc_21">Religion:</h4>
 
-<h5 id="toc_23">Number of Place of Worship for each religion</h5>
+<h5 id="toc_22">Number of Place of Worship for each religion</h5>
 
 <div><pre class="line-numbers"><code class="language-sql">sqlite&gt; SELECT nodesTags.value, COUNT(*) as num
         FROM nodesTags
@@ -601,15 +585,29 @@ rosicrucian,1
 shinto,1
 zoroastrian,1</code></pre></div>
 
-<h3 id="toc_24">Data Improvement Ideas:</h3>
+<h3 id="toc_23">Data Improvement Ideas:</h3>
 
-<ul>
-<li>Working with this dataset, I find that there are still some wrong postal codes such as 9404 when the postal code are 5 digits or 7 digits number.</li>
-<li>Based on the number of contribution by year, we have realized that the number of contribution has been increasing every year. It means that the map data is going to grow larger. Also it means that the number of wrong postal codes will also increase.</li>
-<li>One way we could find the address for this issue is that I can use Reverse Geocoding from Google Geocoding API. Reverse Geocoding is the process of converting geographic coordinates into a human-readable address. In other words, I can use longitude and latitude to retrieve postal code. </li>
-</ul>
+<h5 id="toc_24">The number of node tags:</h5>
 
-<h3 id="toc_25">Conclusion</h3>
+<div><pre class="line-numbers"><code class="language-none">SELECT COUNT(DISTINCT(id)) FROM nodesTags;</code></pre></div>
+
+<p>21206</p>
+
+<h5 id="toc_25">The number of parking for disabled people:</h5>
+
+<div><pre class="line-numbers"><code class="language-none">SELECT COUNT(*) FROM nodesTags
+WHERE key = &#39;disabled&#39; AND value = &#39;yes&#39;;</code></pre></div>
+
+<p>5</p>
+
+<p>Therefore the percentage of node tags with disabled parking information is 5/21206 * 100% = <strong>0.024%</strong>. This number is surprisingly low.</p>
+
+<p>I have tried to find city government data to improve the dataset. However, <strong><a href="http://data.sanjoseca.gov/dataviews/231073/parking-garage-data/">Data SanJose</a></strong> only contains parking information of some parking garages in dowtown of the city.</p>
+
+<p>Another problem is lack of awareness about OpenStreetMaps. Do San Jose people and business owners know that OSM exist? Do they know that they can add data by themselves? And do they know it is free?<br>
+For this issue, we can ask friends or create facebook group that can raise awareness to join <strong><a href="https://www.hotosm.org/get-involved">Humanitarian OpenStreetMap Team</a></strong> to improve dataset, escially for disabled parking.</p>
+
+<h3 id="toc_26">Conclusion</h3>
 
 <p>San Jose is a small town but its dataset is quite large. Therefore it is impossible to clean all the mess inside San Jose CA OpenStreetMap data. However, I believe the dataset is sufficiently cleaned in this project. Most street types abbreviation are replaced by more approriate street type without abbreviation. Phone number and postal code are handled nicely in the format of <code>+1 (408)###-####</code> and <code>CA ##### or CA #####-####</code> respectively. Via SQL query, I learned a few new things about my hometown. Throughout this project I have a great time learning how to clean data with python and SQL. However, my code still take nearly 30 minutes to handle 200MB osm file. Faster processing is the next approach I have to achieve for this project.</p>
 

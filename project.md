@@ -105,25 +105,6 @@ WRONG POSTAL CODE: 9404
 ```
 
 
-
-### Create SQL Tables & Import Data Into Tables
-
-```sql
-sqlite> CREATE TABLE Nodes(id INTEGER PRIMARY KEY, lat REAL, lon REAL, user TEXT, uid INTEGER, version INTEGER, changeset INTEGER, timestamp DATETIME);
-sqlite> CREATE TABLE nodesTags(id INTEGER, key TEXT, value TEXT, type TEXT, FOREIGN KEY (id) REFERENCES Nodes (id));
-sqlite> CREATE TABLE Ways(id INTEGER PRIMARY KEY, user TEXT, uid INTEGER, version INTEGER, changeset INTEGER, timestamp DATETIME);
-sqlite> CREATE TABLE waysNodes(id INTEGER, node_id INTEGER, position INTEGER, FOREIGN KEY(id) REFERENCES Nodes(id));
-sqlite> CREATE TABLE waysTags(id INTEGER, key TEXT, value TEXT, type TEXT, FOREIGN KEY(id) REFERENCES Ways(id));
-sqlite> .table
-Nodes      Ways       nodesTags  waysNodes  waysTags
-sqlite> .mode csv
-sqlite> .import nodes.csv Nodes
-sqlite> .import nodes_tags.csv nodesTags
-sqlite> .import ways.csv Ways
-sqlite> .import ways_tags.csv waysTags
-sqlite> .import ways_nodes.csv waysNodes
-```
-
 ### Data Overview
 This section contains basic statistics about San Jose OpenStreetMap dataset and the SQL queries used to gather them.
 
@@ -320,9 +301,26 @@ zoroastrian,1
 
 ### Data Improvement Ideas:
 
-* Working with this dataset, I find that there are still some wrong postal codes such as 9404 when the postal code are 5 digits or 7 digits number.
-* Based on the number of contribution by year, we have realized that the number of contribution has been increasing every year. It means that the map data is going to grow larger. Also it means that the number of wrong postal codes will also increase.
-* One way we could find the address for this issue is that I can use Reverse Geocoding from Google Geocoding API. Reverse Geocoding is the process of converting geographic coordinates into a human-readable address. In other words, I can use longitude and latitude to retrieve postal code. 
+##### The number of node tags:
+```
+SELECT COUNT(DISTINCT(id)) FROM nodesTags;
+```
+21206
+
+##### The number of parking for disabled people:
+
+```
+SELECT COUNT(*) FROM nodesTags
+WHERE key = 'disabled' AND value = 'yes';
+```
+5
+
+Therefore the percentage of node tags with disabled parking information is 5/21206 * 100% = **0.024%**. This number is surprisingly low.
+
+I have tried to find city government data to improve the dataset. However, **[Data SanJose](http://data.sanjoseca.gov/dataviews/231073/parking-garage-data/)** only contains parking information of some parking garages in dowtown of the city.
+
+Another problem is lack of awareness about OpenStreetMaps. Do San Jose people and business owners know that OSM exist? Do they know that they can add data by themselves? And do they know it is free?
+For this issue, we can ask friends or create facebook group that can raise awareness to join **[Humanitarian OpenStreetMap Team](https://www.hotosm.org/get-involved)** to improve dataset, escially for disabled parking.
 
 ### Conclusion
 
